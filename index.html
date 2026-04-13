@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>弓箭射稻草人</title>
+  <style>
+    body { margin: 0; background: #87ceeb; font-family: sans-serif; overflow: hidden; }
+    #gameCanvas { display: block; background: linear-gradient(#87ceeb 0%, #87ceeb 70%, #79b767 70%, #79b767 100%); }
+    #info { position: absolute; left: 12px; top: 12px; color: #222; text-shadow: 1px 1px 2px rgba(255,255,255,.6); }
+    #info button { margin-top: 8px; padding: 6px 12px; border: none; border-radius: 4px; background: #f4a261; color: #fff; cursor: pointer; }
+    #info button:hover { background: #e76f51; }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+  <div id="info">
+    <div>點擊並拖曳箭頭後放開發射</div>
+    <div>目標：擊中稻草人並避開障礙物</div>
+    <div>得分：<span id="score">0</span></div>
+    <button id="resetBtn">重新開始</button>
+  </div>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const resetBtn = document.getElementById('resetBtn');
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    let width, height;
+
+    const bow = { x: 100, y: 420, radius: 30 };
+    const scarecrow = { x: 760, y: 280, width: 36, height: 120, hit: false };
+    const obstacles = [
+      { x: 320, y: 360, width: 40, height: 120 },
+      { x: 520, y: 320, width: 40, height: 180 },
+      { x: 640, y: 420, width: 120, height: 30 },
+    ];
+    let arrow = { x: bow.x, y: bow.y, vx: 0, vy: 0, active: false, launched: false, angle: 0 };
+    let aiming = false;
+    let startPos = null;
+    let score = 0;
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * devicePixelRatio);
+      canvas.height = Math.floor(height * devicePixelRatio);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+      draw();
+    }
+
+    function drawBackground() {
+      ctx.save();
+      ctx.fillStyle = '#87ceeb';
+      ctx.fillRect(0, 0, width, height);
+      ctx.fillStyle = '#79b767';
+      ctx.fillRect(0, height * 0.7, width, height * 0.3);
+      ctx.restore();
+    }
+
+    function drawBow() {
+      ctx.save();
+      ctx.translate(bow.x, bow.y);
+      ctx.strokeStyle = '#4d2c18';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+.arc(0, 0, bow.radius, Math.PI * 1.2, Math.PI * 0.8, true);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawScarecrow() {
+      ctx.save();
+      const x = scarecrow.x;
+      const y = scarecrow.y;
+      ctx.fillStyle = scarecrow.hit ? '#ff5252' : '#8b5a2b';
+      ctx.fillRect(x, y, scarecrow.width, scarecrow.height);
+      ctx.fillStyle = '#efc38c';
+      ctx.beginPath();
+      ctx.arc(x + scarecrow.width / 2, y - 20, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + 12, y + 20);
+      ctx.lineTo(x + 24, y + 20);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawObstacles() {
+      ctx.save();
+      ctx.fillStyle = '#6b4226';
+      obstacles.forEach(obs => ctx.fillRect(obs.x, obs.y, obs.width, obs.height));
+      ctx.restore();
+    }
+
+    function drawArrow() {
+      if (!arrow.active && !arrow.launched) return;
+      ctx.save();
+      ctx.translate(arrow.x, arrow.y);
+      ctx.rotate(arrow.angle);
+      ctx.fillStyle = '#333';
+      ctx.fillRect(-30, -3, 60, 6);
+      ctx.beginPath();
+      ctx.moveTo(30, 0);
+      ctx.lineTo(40, -6);
+      ctx.lineTo(40, 6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawAimLine(mx, my) {
+      if (!aiming || !startPos) return;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(bow.x, bow.y);
+      ctx.lineTo(mx, my);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function draw() {
+      drawBackground();
+      drawBow();
+      drawObstacles();
+      drawScarecrow();
+      drawArrow();
+    }
+
+    function update(delta) {
+      if (arrow.launched) {
+        arrow.vy += 0.35;
+        arrow.x += arrow.vx * delta;
+        arrow.y += arrow.vy * delta;
+        arrow.angle = Math.atan2(arrow.vy, arrow.vx);
+
+        if (arrow.x < 0 || arrow.x > width || arrow.y > height) resetArrow();
+        if (checkHitScarecrow()) {
+          scarecrow.hit = true;
+          score += 1;
+          scoreEl.textContent = score;
+          resetArrow();
+        }
+        if (checkObstacleCollision()) {
+          resetArrow();
+        }
+      }
+    }
+
+    function checkHitScarecrow() {
+      const px = arrow.x;
+      const py = arrow.y;
+      return px > scarecrow.x && px < scarecrow.x + scarecrow.width && py > scarecrow.y && py < scarecrow.y + scarecrow.height;
+    }
+
+    function checkObstacleCollision() {
+      const px = arrow.x;
+      const py = arrow.y;
+      return obstacles.some(obs => px > obs.x && px < obs.x + obs.width && py > obs.y && py < obs.y + obs.height);
+    }
+
+    function resetArrow() {
+      arrow = { x: bow.x, y: bow.y, vx: 0, vy: 0, active: false, launched: false, angle: 0 };
+      aiming = false;
+    }
+
+    function animate(timestamp) {
+      const now = timestamp / 16.666;
+      update(1);
+      draw();
+      requestAnimationFrame(animate);
+    }
+
+    function onPointerDown(event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const dx = x - bow.x;
+      const dy = y - bow.y;
+      if (Math.hypot(dx, dy) <= bow.radius + 20) {
+        aiming = true;
+        startPos = { x, y };
+        arrow.active = true;
+      }
+    }
+
+    function onPointerMove(event) {
+      if (!aiming) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      draw();
+      drawAimLine(x, y);
+    }
+
+    function onPointerUp(event) {
+      if (!aiming || !startPos) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const dx = bow.x - x;
+      const dy = bow.y - y;
+      arrow.vx = dx * 0.18;
+      arrow.vy = dy * 0.18;
+      arrow.launched = true;
+      arrow.angle = Math.atan2(arrow.vy, arrow.vx);
+      aiming = false;
+      startPos = null;
+    }
+
+    canvas.addEventListener('pointerdown', onPointerDown);
+    canvas.addEventListener('pointermove', onPointerMove);
+    canvas.addEventListener('pointerup', onPointerUp);
+    canvas.addEventListener('pointerleave', onPointerUp);
+
+    resetBtn.addEventListener('click', () => {
+      score = 0;
+      scarecrow.hit = false;
+      scoreEl.textContent = score;
+      resetArrow();
+    });
+
+    window.addEventListener('resize', resize);
+    resize();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
