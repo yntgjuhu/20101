@@ -38,6 +38,7 @@
     let arrow = { x: bow.x, y: bow.y, vx: 0, vy: 0, active: false, launched: false, angle: 0 };
     let aiming = false;
     let startPos = null;
+    let aimPos = null;
     let score = 0;
 
     function resize() {
@@ -143,6 +144,7 @@
       drawObstacles();
       drawScarecrow();
       drawArrow();
+      if (aiming && aimPos) drawAimLine(aimPos.x, aimPos.y);
     }
 
     function update(delta) {
@@ -180,6 +182,7 @@
     function resetArrow() {
       arrow = { x: bow.x, y: bow.y, vx: 0, vy: 0, active: false, launched: false, angle: 0 };
       aiming = false;
+      aimPos = null;
     }
 
     function animate(timestamp) {
@@ -198,6 +201,7 @@
       if (Math.hypot(dx, dy) <= bow.radius + 20) {
         aiming = true;
         startPos = { x, y };
+        aimPos = { x, y };
         arrow.active = true;
       }
     }
@@ -207,8 +211,7 @@
       const rect = canvas.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
-      draw();
-      drawAimLine(x, y);
+      aimPos = { x, y };
     }
 
     function onPointerUp(event) {
@@ -224,6 +227,7 @@
       arrow.angle = Math.atan2(arrow.vy, arrow.vx);
       aiming = false;
       startPos = null;
+      aimPos = null;
     }
 
     canvas.addEventListener('pointerdown', onPointerDown);
