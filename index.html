@@ -66,7 +66,7 @@
       ctx.strokeStyle = '#4d2c18';
       ctx.lineWidth = 5;
       ctx.beginPath();
-.arc(0, 0, bow.radius, Math.PI * 1.2, Math.PI * 0.8, true);
+      ctx.arc(0, 0, bow.radius, Math.PI * 1.2, Math.PI * 0.8, true);
       ctx.stroke();
       ctx.restore();
     }
@@ -77,6 +77,12 @@
       const y = scarecrow.y;
       ctx.fillStyle = scarecrow.hit ? '#ff5252' : '#8b5a2b';
       ctx.fillRect(x, y, scarecrow.width, scarecrow.height);
+      ctx.strokeStyle = '#6b4226';
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.moveTo(x - 20, y + 30);
+      ctx.lineTo(x + scarecrow.width + 20, y + 30);
+      ctx.stroke();
       ctx.fillStyle = '#efc38c';
       ctx.beginPath();
       ctx.arc(x + scarecrow.width / 2, y - 20, 18, 0, Math.PI * 2);
@@ -86,6 +92,12 @@
       ctx.beginPath();
       ctx.moveTo(x + 12, y + 20);
       ctx.lineTo(x + 24, y + 20);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x + 12, y + 50);
+      ctx.lineTo(x + 12, y + 80);
+      ctx.moveTo(x + 24, y + 50);
+      ctx.lineTo(x + 24, y + 80);
       ctx.stroke();
       ctx.restore();
     }
