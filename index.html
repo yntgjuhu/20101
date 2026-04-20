@@ -128,12 +128,30 @@
 
     function drawAimLine(mx, my) {
       if (!aiming || !startPos) return;
+      const dx = bow.x - mx;
+      const dy = bow.y - my;
+      const vx = dx * 0.18;
+      const vy = dy * 0.18;
+      const gravity = 0.35;
+      const points = [];
+      let x = bow.x;
+      let y = bow.y;
+      let t = 0;
+      while (t < 50 && y < height && x > 0 && x < width) {
+        points.push({x, y});
+        x += vx;
+        y += vy;
+        vy += gravity;
+        t++;
+      }
       ctx.save();
       ctx.strokeStyle = 'rgba(0,0,0,0.4)';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(bow.x, bow.y);
-      ctx.lineTo(mx, my);
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
       ctx.stroke();
       ctx.restore();
     }
@@ -198,7 +216,7 @@
       const y = event.clientY - rect.top;
       const dx = x - bow.x;
       const dy = y - bow.y;
-      if (Math.hypot(dx, dy) <= bow.radius + 20) {
+      if (Math.hypot(dx, dy) <= bow.radius + 50) {
         aiming = true;
         startPos = { x, y };
         aimPos = { x, y };
