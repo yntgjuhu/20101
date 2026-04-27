@@ -211,6 +211,8 @@
     }
 
     function onPointerDown(event) {
+      event.preventDefault();
+      canvas.setPointerCapture(event.pointerId);
       const rect = canvas.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
@@ -226,6 +228,7 @@
 
     function onPointerMove(event) {
       if (!aiming) return;
+      event.preventDefault();
       const rect = canvas.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
@@ -234,6 +237,10 @@
 
     function onPointerUp(event) {
       if (!aiming || !startPos) return;
+      event.preventDefault();
+      if (event.pointerId) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
       const rect = canvas.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
@@ -248,11 +255,11 @@
       aimPos = null;
     }
 
-    canvas.addEventListener('pointerdown', onPointerDown);
-    canvas.addEventListener('pointermove', onPointerMove);
-    canvas.addEventListener('pointerup', onPointerUp);
-    canvas.addEventListener('pointerleave', onPointerUp);
-    canvas.addEventListener('pointercancel', onPointerUp);
+    canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
+    canvas.addEventListener('pointermove', onPointerMove, { passive: false });
+    canvas.addEventListener('pointerup', onPointerUp, { passive: false });
+    canvas.addEventListener('pointerleave', onPointerUp, { passive: false });
+    canvas.addEventListener('pointercancel', onPointerUp, { passive: false });
 
     resetBtn.addEventListener('click', () => {
       score = 0;
