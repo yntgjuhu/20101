@@ -210,9 +210,16 @@
       requestAnimationFrame(animate);
     }
 
+    function isLeftMouse(event) {
+      return event.button === 0 || event.pointerType === 'touch';
+    }
+
     function onPointerDown(event) {
+      if (event.pointerType === 'mouse' && !isLeftMouse(event)) return;
       event.preventDefault();
-      canvas.setPointerCapture(event.pointerId);
+      if (event.pointerId) {
+        canvas.setPointerCapture(event.pointerId);
+      }
       const rect = canvas.getBoundingClientRect();
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
@@ -237,6 +244,7 @@
 
     function onPointerUp(event) {
       if (!aiming || !startPos) return;
+      if (event.pointerType === 'mouse' && !isLeftMouse(event)) return;
       event.preventDefault();
       if (event.pointerId) {
         canvas.releasePointerCapture(event.pointerId);
@@ -255,11 +263,28 @@
       aimPos = null;
     }
 
-    canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
-    canvas.addEventListener('pointermove', onPointerMove, { passive: false });
-    canvas.addEventListener('pointerup', onPointerUp, { passive: false });
-    canvas.addEventListener('pointerleave', onPointerUp, { passive: false });
-    canvas.addEventListener('pointercancel', onPointerUp, { passive: false });
+    function addMouseFallback() {
+      canvas.addEventListener('mousedown', event => {
+        if (event.button !== 0) return;
+        onPointerDown(event);
+      });
+      canvas.addEventListener('mousemove', event => {
+        onPointerMove(event);
+      });
+      window.addEventListener('mouseup', event => {
+        onPointerUp(event);
+      });
+    }
+
+    if (window.PointerEvent) {
+      canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
+      canvas.addEventListener('pointermove', onPointerMove, { passive: false });
+      canvas.addEventListener('pointerup', onPointerUp, { passive: false });
+      canvas.addEventListener('pointerleave', onPointerUp, { passive: false });
+      canvas.addEventListener('pointercancel', onPointerUp, { passive: false });
+    } else {
+      addMouseFallback();
+    }
 
     resetBtn.addEventListener('click', () => {
       score = 0;
