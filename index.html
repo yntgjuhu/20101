@@ -221,8 +221,8 @@
         canvas.setPointerCapture(event.pointerId);
       }
       const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
+      const x = (event.clientX - rect.left) * devicePixelRatio;
+      const y = (event.clientY - rect.top) * devicePixelRatio;
       const dx = x - bow.x;
       const dy = y - bow.y;
       if (Math.hypot(dx, dy) <= bow.radius + 50) {
@@ -237,8 +237,8 @@
       if (!aiming) return;
       event.preventDefault();
       const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
+      const x = (event.clientX - rect.left) * devicePixelRatio;
+      const y = (event.clientY - rect.top) * devicePixelRatio;
       aimPos = { x, y };
     }
 
@@ -250,8 +250,8 @@
         canvas.releasePointerCapture(event.pointerId);
       }
       const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
+      const x = (event.clientX - rect.left) * devicePixelRatio;
+      const y = (event.clientY - rect.top) * devicePixelRatio;
       const dx = bow.x - x;
       const dy = bow.y - y;
       arrow.vx = dx * 0.18;
