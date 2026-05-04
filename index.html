@@ -28,7 +28,7 @@
     const devicePixelRatio = window.devicePixelRatio || 1;
     let width, height;
 
-    const bow = { x: 100, y: 420, radius: 30 };
+    const bow = { x: 100, y: 420, radius: 60 };
     const scarecrow = { x: 760, y: 280, width: 36, height: 120, hit: false };
     const obstacles = [
       { x: 320, y: 360, width: 40, height: 120 },
@@ -65,10 +65,29 @@
       ctx.save();
       ctx.translate(bow.x, bow.y);
       ctx.strokeStyle = '#4d2c18';
-      ctx.lineWidth = 5;
+      ctx.lineWidth = 8;
       ctx.beginPath();
       ctx.arc(0, 0, bow.radius, Math.PI * 1.2, Math.PI * 0.8, true);
       ctx.stroke();
+      
+      if (aiming && aimPos) {
+        const pullX = (aimPos.x - bow.x) * 0.2;
+        const pullY = (aimPos.y - bow.y) * 0.2;
+        ctx.strokeStyle = '#ff6b6b';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-bow.radius * 0.3, -bow.radius * 0.4);
+        ctx.lineTo(pullX, pullY);
+        ctx.moveTo(-bow.radius * 0.3, bow.radius * 0.4);
+        ctx.lineTo(pullX, pullY);
+        ctx.stroke();
+        
+        ctx.fillStyle = 'rgba(255, 107, 107, 0.3)';
+        ctx.beginPath();
+        ctx.arc(pullX, pullY, 8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      
       ctx.restore();
     }
 
