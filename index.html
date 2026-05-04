@@ -216,6 +216,7 @@
 
     function onPointerDown(event) {
       if (event.pointerType === 'mouse' && !isLeftMouse(event)) return;
+      if (arrow.launched) return;
       event.preventDefault();
       if (event.pointerId) {
         canvas.setPointerCapture(event.pointerId);
