@@ -230,11 +230,11 @@
     }
 
     function isLeftMouse(event) {
-      return event.button === 0 || event.pointerType === 'touch';
+      return event.button === 0;
     }
 
     function onPointerDown(event) {
-      if (event.pointerType === 'mouse' && !isLeftMouse(event)) return;
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
       if (arrow.launched) return;
       event.preventDefault();
       if (event.pointerId) {
@@ -245,7 +245,7 @@
       const y = (event.clientY - rect.top) * devicePixelRatio;
       const dx = x - bow.x;
       const dy = y - bow.y;
-      if (Math.hypot(dx, dy) <= bow.radius + 50) {
+      if (Math.hypot(dx, dy) <= bow.radius + 80) {
         aiming = true;
         startPos = { x, y };
         aimPos = { x, y };
